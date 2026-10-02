@@ -6,10 +6,11 @@ cd "$(dirname "$0")"
 chmod +x run_daily.sh
 DIR="$PWD"
 
-# Rebuild the crontab from the existing one, minus any old run_daily line.
-# (grep exits 1 when nothing matches, so don't let pipefail treat that as fatal.)
+# Rebuild the crontab from the existing one: drop exact-duplicate lines and any
+# old run_daily entry, then add ours. (grep exits 1 when nothing matches, so
+# don't let pipefail treat that as fatal.)
 TMP="$(mktemp)"
-crontab -l 2>/dev/null | grep -vF "run_daily.sh" > "$TMP" || true
+crontab -l 2>/dev/null | awk '!seen[$0]++' | grep -vF "run_daily.sh" > "$TMP" || true
 echo "1 0 * * * $DIR/run_daily.sh" >> "$TMP"
 crontab "$TMP"
 rm -f "$TMP"
