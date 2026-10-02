@@ -58,21 +58,31 @@ server), and headed by default on Windows/macOS.
 
 ## Running on a Debian server
 
-1. Copy the project over and run the one-time setup on the server:
-   ```bash
-   scp .env friends.json message.txt storage_state.json send_messages.py \
-       requirements.txt setup_server.sh run_daily.sh install_cron.sh \
-       user@server:~/TikTokStreakKeeper2/
-   ssh user@server
-   cd ~/TikTokStreakKeeper2 && sed -i 's/\r$//' *.sh && bash setup_server.sh
+The code itself arrives via git (`git pull` — everything is pushed). The only
+files that **don't** come through git are the two secrets, because they're
+git-ignored: `.env` and `storage_state.json`.
+
+1. From **Windows PowerShell**, copy just those two — **replace
+   `user@your-server` with your actual SSH target** (e.g. `dani@debian`):
+   ```powershell
+   cd C:\Users\Dani\Documents\Python\TikTokStreakKeeper2
+   scp .env storage_state.json user@your-server:~/Documents/Python/TikTokStreakKeeper2/
    ```
-   (`sed` undos any Windows line endings; harmless if there are none.)
-2. **Migrating your login**: `storage_state.json` holds your session cookies in
-   plain JSON. Don't copy `user_data/` — Windows encrypts its cookies with
-   DPAPI, so they're unreadable on Linux. On first run the script creates a
-   fresh Linux profile **seeded from `storage_state.json`**. When the session
-   eventually lapses: log in once on Windows (`--login-only`), then copy the
-   refreshed `storage_state.json` back to the server.
+   (No `.env` on Windows? Create one on the server instead: `nano .env` with
+   the `TIKTOK_EMAIL=` / `TIKTOK_PASSWORD=` lines.)
+   Why `storage_state.json`: it holds your session cookies in plain JSON, so
+   the Linux run starts already logged in. Don't copy `user_data/` — Windows
+   encrypts its cookies with DPAPI, unreadable on Linux. On first run the
+   script creates a fresh Linux profile **seeded from `storage_state.json`**.
+   When the session eventually lapses: log in once on Windows
+   (`python send_messages.py --login-only`), then copy the refreshed file over.
+2. **On the server**, one-time setup:
+   ```bash
+   cd ~/Documents/Python/TikTokStreakKeeper2
+   git pull
+   sed -i 's/\r$//' *.sh      # undo Windows line endings, harmless if none
+   bash setup_server.sh
+   ```
 3. Test it: `./.venv/bin/python send_messages.py --test --unattended`
 4. Schedule it: `bash install_cron.sh` → runs `run_daily.sh` at **00:01 in the
    server's timezone** (check with `timedatectl`; set yours with
