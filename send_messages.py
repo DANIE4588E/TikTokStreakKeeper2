@@ -353,6 +353,10 @@ def ensure_logged_in(page, context, email: str, password: str, unattended: bool 
         log("Already logged in (saved session).")
         return True
 
+    # A cookie-consent wall (common from EU server IPs) can block the Log in button.
+    safe_click(page, ['button:has-text("Accept all")', 'button:has-text("Accept")',
+                      'button:has-text("Allow all cookies")'], timeout=2_500)
+
     log("Not logged in yet — trying the email/password login flow…")
     safe_click(page, ['[data-testid="login-button"]', 'button:has-text("Log in")',
                       'div[data-e2e="login-button"]'], timeout=8_000)
