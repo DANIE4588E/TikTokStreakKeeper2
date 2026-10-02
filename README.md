@@ -127,8 +127,8 @@ To reset the saved session: `--login-only`, or delete `user_data/`.
    (fallbacks: the direct `/message` URL, then inbox → search).
 3. Types the message into the chat box, presses Enter, and **verifies the
    message bubble appeared** before moving on.
-4. Waits a randomised ~10–20 s (`--delay`) between friends and prints a summary;
-   failures get a screenshot in `failures/`.
+4. Waits a randomised ~3.5–6.5 s (`--delay`, default 5) between friends and
+   prints a summary; failures get a screenshot in `failures/`.
 
 ## Fair warning
 

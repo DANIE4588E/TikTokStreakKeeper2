@@ -55,7 +55,7 @@ FAILURE_DIR = BASE_DIR / "failures"           # screenshots on failure
 HOME_URL = "https://www.tiktok.com/"
 INBOX_URL = "https://www.tiktok.com/en/inbox"
 
-MIN_DELAY_BETWEEN_FRIENDS = 15.0   # seconds, randomised +-30%
+MIN_DELAY_BETWEEN_FRIENDS = 5.0    # seconds, randomised +-30%
 ACTION_PAUSE = (1.2, 2.8)          # short human-like pauses between actions
 CHAT_BOX_TIMEOUT = 15_000          # ms to wait for the chat box to appear
 SEND_VERIFY_TIMEOUT = 12_000       # ms to confirm the message appeared
@@ -476,7 +476,7 @@ def open_chat(page, friend: dict) -> bool:
         log(f"  opening {who}'s profile…")
         page.goto(f"https://www.tiktok.com/@{friend['username']}",
                   wait_until="domcontentloaded")
-        human_pause(1.5, 3.0)
+        human_pause(0.6, 1.2)
 
         if click_message_button(page):
             if find_message_box(page) is not None:
@@ -499,17 +499,17 @@ def open_chat(page, friend: dict) -> bool:
     query = friend["username"] or friend["name"]
     log(f"  falling back to an inbox search for '{query}'…")
     page.goto(INBOX_URL, wait_until="domcontentloaded")
-    human_pause(2.0, 3.5)
+    human_pause(1.0, 1.8)
     safe_click(page, ['button:has-text("Message")', '[data-e2e="inbox-message-button"]'],
                timeout=4_000)
-    human_pause(1.0, 2.0)
+    human_pause(0.5, 1.0)
 
     search_box = first_visible(page, ['input[placeholder*="search" i]'], timeout=6_000)
     if search_box is None:
         return False
     search_box.click()
     search_box.type(query, delay=55)
-    human_pause(2.0, 3.0)
+    human_pause(0.8, 1.5)
 
     for sel in (f'text="@{query}"', f'text="{query}"'):
         try:
@@ -527,12 +527,12 @@ def open_chat(page, friend: dict) -> bool:
 def send_line(page, box, line: str) -> bool:
     """Type one line into the chat box and send it; returns whether it appeared."""
     box.click()
-    human_pause(0.4, 0.9)
+    human_pause(0.15, 0.35)
     try:
         page.keyboard.insert_text(line)
     except PlaywrightError:
         box.press_sequentially(line, delay=45)
-    human_pause(0.5, 1.1)
+    human_pause(0.2, 0.5)
     page.keyboard.press("Enter")
 
     if verify_sent(page, line):
@@ -574,7 +574,7 @@ def send_to_friend(page, template: str, friend: dict) -> tuple[bool, str]:
             return False, f"message line {i + 1} did not confirm as sent{f' (see {shot})' if shot else ''}"
         box = find_message_box(page, timeout=5_000) or box
         if i < len(lines) - 1:
-            human_pause(1.0, 2.0)
+            human_pause(0.4, 0.9)
 
     n = len(lines)
     return True, f"sent ({n} message{'s' if n != 1 else ''})"
@@ -586,7 +586,7 @@ def main() -> int:
     ap.add_argument("--test", action="store_true", help="send only to the first friend")
     ap.add_argument("--login-only", action="store_true", help="just log in and save the session")
     ap.add_argument("--delay", type=float, default=MIN_DELAY_BETWEEN_FRIENDS,
-                    metavar="SEC", help="seconds to wait between friends (default 15, randomised)")
+                    metavar="SEC", help="seconds to wait between friends (default 5, randomised)")
     ap.add_argument("--headless", action="store_true",
                     help="force headless even on a desktop machine")
     ap.add_argument("--headed", action="store_true",
